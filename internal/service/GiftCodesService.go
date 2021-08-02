@@ -3,13 +3,21 @@ package service
 import (
 	"ThirdProject/internal/model"
 	"errors"
+	"time"
 )
 
 type GiftCodesService struct {
 }
 
 //验证创建礼品码
-func (this *GiftCodesService) valPullNum(giftCodes model.GiftCodes) (bool, error) {
+func (this *GiftCodesService) ValPullNum(giftCodes *model.GiftCodes) (bool, error) {
+	loc, _ := time.LoadLocation("Local")
+	strToTime, timeerr := time.ParseInLocation("2006-01-02 15:04:05", giftCodes.ValidityStr, loc)
+	if timeerr != nil {
+		return false, errors.New("有效时间参数格式不对")
+	}
+	timeUnixx := strToTime.Unix()
+	giftCodes.Validity = timeUnixx
 	if giftCodes.CreateUserId == "" {
 		return false, errors.New("创建人不能为空！")
 	}
@@ -46,6 +54,6 @@ func (this *GiftCodesService) valPullNum(giftCodes model.GiftCodes) (bool, error
 			return false, errors.New("可领取次数不能为空！")
 		}
 	}
-
+	giftCodes.GiftPulledNum = 0
 	return true, nil
 }

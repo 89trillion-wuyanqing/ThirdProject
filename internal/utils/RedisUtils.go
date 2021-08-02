@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
 	"time"
@@ -29,7 +30,7 @@ func StringPush(key string, value string, outTime time.Duration) error {
 	err := rdb.Set(key, value, outTime).Err()
 	if err != nil {
 		fmt.Printf("set score failed, err:%v\n", err)
-		return err
+		return errors.New("redis存储失败")
 	}
 	return nil
 
@@ -42,7 +43,7 @@ func StringPull(key string) (string, error) {
 		return "", redis.Nil
 	} else if err != nil {
 		fmt.Printf("get name failed, err:%v\n", err)
-		return "", err
+		return "", errors.New("redis获取失败")
 	} else {
 		return val, nil
 	}
