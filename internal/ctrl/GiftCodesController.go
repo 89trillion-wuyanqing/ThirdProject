@@ -7,6 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/**
+controller层
+*/
 type GiftCodeController struct {
 }
 
@@ -14,32 +17,19 @@ func (this *GiftCodeController) CreateGiftCodes() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		giftCodes := &model.GiftCodes{}
 		jsonStr, _ := context.GetPostForm("jsonStr")
-		err := json.Unmarshal([]byte(jsonStr), giftCodes)
-
-		giftHandler := handler.GiftCodeshandler{}
-		if err != nil {
-			context.JSON(200, map[string]interface{}{
-				"code":    201,
-				"message": "ERROR",
-				"data":    err.Error(),
-			})
-		} else {
-
-			_, e := giftHandler.CreateGiftCodes(giftCodes)
-			if e != nil {
-				context.JSON(200, map[string]interface{}{
-					"code":    201,
-					"message": "ERROR",
-					"data":    e.Error(),
-				})
-			} else {
-				context.JSON(200, map[string]interface{}{
-					"code":    200,
-					"message": "OK",
-					"data":    "创建成功，礼品码是：" + giftCodes.GiftCode,
-				})
-			}
+		if jsonStr == "" {
+			context.JSON(200, model.Result{Code: "201", Msg: "请输入创建礼品码信息", Data: nil})
+			return
 		}
+		err := json.Unmarshal([]byte(jsonStr), giftCodes)
+		if err != nil {
+			context.JSON(200, model.Result{Code: "202", Msg: "后台反序列化出错", Data: nil})
+			return
+		}
+		giftHandler := handler.GiftCodeshandler{}
+		result := giftHandler.CreateGiftCodes(giftCodes)
+		context.JSON(200, result)
+
 	}
 }
 
@@ -47,42 +37,31 @@ func (this *GiftCodeController) GetCiftCodes() gin.HandlerFunc {
 	return func(context *gin.Context) {
 
 		giftCode, _ := context.GetPostForm("giftCode")
-		giftHandler := handler.GiftCodeshandler{}
-		giftCodes, err := giftHandler.GetCiftCodes(giftCode)
-		if err != nil {
-			context.JSON(200, map[string]interface{}{
-				"code":    201,
-				"message": "ERROR",
-				"data":    err.Error(),
-			})
-		} else {
-			context.JSON(200, map[string]interface{}{
-				"code":    200,
-				"message": "OK",
-				"data":    giftCodes,
-			})
+		if giftCode == "" {
+			context.JSON(200, model.Result{Code: "201", Msg: "请输入参数", Data: nil})
+			return
 		}
+		giftHandler := handler.GiftCodeshandler{}
+		result := giftHandler.GetCiftCodes(giftCode)
+		context.JSON(200, result)
+
 	}
 }
 
 func (this *GiftCodeController) ActivateCode() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		giftCode, _ := context.GetPostForm("giftCode")
-		userId, _ := context.GetPostForm("userId")
-		giftHandler := handler.GiftCodeshandler{}
-		giftList, err := giftHandler.ActivateCode(giftCode, userId)
-		if err != nil {
-			context.JSON(200, map[string]interface{}{
-				"code":    201,
-				"message": "ERROR",
-				"data":    err.Error(),
-			})
-		} else {
-			context.JSON(200, map[string]interface{}{
-				"code":    200,
-				"message": "OK",
-				"data":    giftList,
-			})
+		if giftCode == "" {
+			context.JSON(200, model.Result{Code: "221", Msg: "请输入礼品码参数", Data: nil})
+			return
 		}
+		userId, _ := context.GetPostForm("userId")
+		if giftCode == "" {
+			context.JSON(200, model.Result{Code: "222", Msg: "请输入用户id参数", Data: nil})
+			return
+		}
+		giftHandler := handler.GiftCodeshandler{}
+		result := giftHandler.ActivateCode(giftCode, userId)
+		context.JSON(200, result)
 	}
 }

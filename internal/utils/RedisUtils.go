@@ -26,6 +26,7 @@ func InitClient() error {
 	return nil
 }
 
+//往redis  set操作
 func StringPush(key string, value string, outTime time.Duration) error {
 	err := rdb.Set(key, value, outTime).Err()
 	if err != nil {
@@ -36,6 +37,7 @@ func StringPush(key string, value string, outTime time.Duration) error {
 
 }
 
+//redis  get操作
 func StringPull(key string) (string, error) {
 	val, err := rdb.Get(key).Result()
 	if err == redis.Nil {

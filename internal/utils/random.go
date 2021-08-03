@@ -10,7 +10,7 @@ type RandomCode struct {
 
 var defaultLetters = []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
-// RandomString returns a random string with a fixed length
+// 随机返回8位字符串
 func (this *RandomCode) RandomString() string {
 
 	b := make([]rune, 8)

@@ -5,7 +5,8 @@ import (
 	"ThirdProject/internal/service"
 	utils2 "ThirdProject/internal/utils"
 	"encoding/json"
-	"errors"
+
+	"github.com/go-redis/redis"
 
 	"time"
 )
@@ -13,51 +14,76 @@ import (
 type GiftCodeshandler struct {
 }
 
-func (this *GiftCodeshandler) CreateGiftCodes(giftCodes *model.GiftCodes) (bool, error) {
+/**
+创建礼品码业务处理
+*/
+func (this *GiftCodeshandler) CreateGiftCodes(giftCodes *model.GiftCodes) model.Result {
 	giftCodes.GiftCode = new(utils2.RandomCode).RandomString()
 	giftCodes.CreateTime = time.Now().Unix()
 	giftCodes.GiftPulledNum = 0
 	giftService := service.GiftCodesService{}
-	_, valErr := giftService.ValPullNum(giftCodes)
-	if valErr != nil {
-		return false, valErr
+	result := giftService.ValPullNum(giftCodes)
+	var valErr model.Result
+	if result != valErr {
+		return result
 	}
 	jsonStr, err := json.Marshal(giftCodes)
 	if err != nil {
-		return false, err
+		return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
 	}
 
 	r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
 	if r != nil {
-		return false, r
+		return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 	}
-	return true, nil
+	return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftCode}
 }
 
-func (this *GiftCodeshandler) GetCiftCodes(giftCode string) (*model.GiftCodes, error) {
+/**
+获取礼品码信息业务处理
+*/
+func (this *GiftCodeshandler) GetCiftCodes(giftCode string) model.Result {
 	result, r := utils2.StringPull(giftCode)
 	if r != nil {
-		return nil, r
+		if r == redis.Nil {
+			return model.Result{Code: "214", Msg: "redis中不存在该礼品码", Data: nil}
+		} else {
+			return model.Result{Code: "215", Msg: "redis获取数据失败", Data: nil}
+		}
+
 	}
 	giftCodes := &model.GiftCodes{}
-	json.Unmarshal([]byte(result), giftCodes)
-	return giftCodes, nil
+	err := json.Unmarshal([]byte(result), giftCodes)
+	if err != nil {
+		return model.Result{Code: "202", Msg: "后台反序列化出错", Data: nil}
+	}
+	return model.Result{Code: "200", Msg: "成功", Data: giftCodes}
 }
 
-func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) ([]model.Gifts, error) {
+/**
+、激活礼品码业务处理
+*/
+func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model.Result {
 	//先验证验证码是否存在
 	giftCodes := &model.GiftCodes{}
 	result, r := utils2.StringPull(giftCode)
 	if r != nil {
-		return nil, r
+		if r == redis.Nil {
+			return model.Result{Code: "214", Msg: "redis中不存在该礼品码", Data: nil}
+		} else {
+			return model.Result{Code: "215", Msg: "redis获取数据失败", Data: nil}
+		}
 	}
 
-	json.Unmarshal([]byte(result), giftCodes)
+	err := json.Unmarshal([]byte(result), giftCodes)
+	if err != nil {
+		return model.Result{Code: "202", Msg: "后台反序列化出错", Data: nil}
+	}
 	//先验证礼品码是否过期
 	CurrentTime := time.Now().Unix()
 
 	if CurrentTime > giftCodes.Validity {
-		return nil, errors.New("该礼品码已过期")
+		return model.Result{Code: "216", Msg: "该礼品码已过期", Data: nil}
 	}
 	//验证验证码是哪一类验证码
 	if giftCodes.GiftCodeType == "A" {
@@ -76,21 +102,21 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) ([]mo
 
 				jsonStr, err := json.Marshal(giftCodes)
 				if err != nil {
-					return nil, errors.New("存储数据序列化出问题")
+					return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
 				}
 				r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
 				if r != nil {
-					return nil, r
+					return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 				}
-				return giftCodes.GiftList, nil
+				return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
 			} else {
 				//已领取过
-				return nil, errors.New("该激活码已被领取")
+				return model.Result{Code: "217", Msg: "礼品码已领取", Data: nil}
 			}
 
 		} else {
 			//不是该领取码的限制人
-			return nil, errors.New("你不可使用该激活码")
+			return model.Result{Code: "218", Msg: "你不可使用该礼品码", Data: nil}
 		}
 	} else if giftCodes.GiftCodeType == "B" {
 		//不限用户  不限次数，用户是否用过
@@ -113,19 +139,19 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) ([]mo
 
 				jsonStr, err := json.Marshal(giftCodes)
 				if err != nil {
-					return nil, errors.New("存储数据序列化出问题")
+					return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
 				}
 				r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
 				if r != nil {
-					return nil, r
+					return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 				}
-				return giftCodes.GiftList, nil
+				return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
 			} else {
 				//有领取记录 使用查看是否领取过
 				for i, v := range records {
 					if v.Userid == userId {
 						//领取列表存在该用户领取记录
-						return nil, errors.New("你已经领取该礼品码")
+						return model.Result{Code: "217", Msg: "礼品码已领取", Data: nil}
 						break
 					}
 					if i == len(records)-1 {
@@ -141,13 +167,13 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) ([]mo
 
 						jsonStr, err := json.Marshal(giftCodes)
 						if err != nil {
-							return nil, errors.New("存储数据序列化出问题")
+							return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
 						}
 						r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
 						if r != nil {
-							return nil, r
+							return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 						}
-						return giftCodes.GiftList, nil
+						return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
 
 					}
 				}
@@ -155,7 +181,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) ([]mo
 			}
 
 		} else {
-			return nil, errors.New("该礼品码已被领取完")
+			return model.Result{Code: "219", Msg: "该礼品码已被领取完", Data: nil}
 		}
 
 	} else if giftCodes.GiftCodeType == "C" {
@@ -174,19 +200,19 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) ([]mo
 			giftCodes.RecordList = list
 			jsonStr, err := json.Marshal(giftCodes)
 			if err != nil {
-				return nil, errors.New("存储数据序列化出问题")
+				return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
 			}
 			r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
 			if r != nil {
-				return nil, r
+				return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 			}
-			return giftCodes.GiftList, nil
+			return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
 		} else {
 			//有领取记录 使用查看是否领取过
 			for i, v := range records {
 				if v.Userid == userId {
 					//领取列表存在该用户领取记录
-					return nil, errors.New("你已经领取该礼品码")
+					return model.Result{Code: "217", Msg: "礼品码已领取", Data: nil}
 					break
 				}
 				if i == len(records)-1 {
@@ -201,13 +227,13 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) ([]mo
 					giftCodes.RecordList = list
 					jsonStr, err := json.Marshal(giftCodes)
 					if err != nil {
-						return nil, errors.New("存储数据序列化出问题")
+						return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
 					}
 					r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
 					if r != nil {
-						return nil, r
+						return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 					}
-					return giftCodes.GiftList, nil
+					return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
 
 				}
 			}
@@ -215,5 +241,6 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) ([]mo
 		}
 
 	}
-	return nil, errors.New("礼品码无效")
+
+	return model.Result{Code: "220", Msg: "礼品码无效", Data: nil}
 }
