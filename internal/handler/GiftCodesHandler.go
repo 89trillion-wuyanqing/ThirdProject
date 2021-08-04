@@ -95,7 +95,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 				giftCodes.GiftPullNum -= 1
 				giftCodes.GiftPulledNum += 1
 				list := giftCodes.RecordList
-				m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2021-03-04 15:04:05")}
+				m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
 				list = append(list, m1)
 
 				giftCodes.RecordList = list
@@ -132,7 +132,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 				giftCodes.GiftPullNum -= 1
 				giftCodes.GiftPulledNum += 1
 				list := giftCodes.RecordList
-				m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2021-03-04 15:04:05")}
+				m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
 				list = append(list, m1)
 
 				giftCodes.RecordList = list
@@ -161,7 +161,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 						giftCodes.GiftPullNum -= 1
 						giftCodes.GiftPulledNum += 1
 						list := giftCodes.RecordList
-						m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2021-03-04 15:04:05")}
+						m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
 						list = append(list, m1)
 						giftCodes.RecordList = list
 
@@ -194,7 +194,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 
 			giftCodes.GiftPulledNum += 1
 			list := giftCodes.RecordList
-			m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2021-03-04 15:04:05")}
+			m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
 			list = append(list, m1)
 
 			giftCodes.RecordList = list
@@ -222,7 +222,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 
 					giftCodes.GiftPulledNum += 1
 					list := giftCodes.RecordList
-					m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2021-03-04 15:04:05")}
+					m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
 					list = append(list, m1)
 					giftCodes.RecordList = list
 					jsonStr, err := json.Marshal(giftCodes)
