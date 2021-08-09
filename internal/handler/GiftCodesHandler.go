@@ -5,7 +5,7 @@ import (
 	"ThirdProject/internal/service"
 	utils2 "ThirdProject/internal/utils"
 	"encoding/json"
-
+	"fmt"
 	"github.com/go-redis/redis"
 
 	"time"
@@ -92,7 +92,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 			//查看可领取次数
 			if giftCodes.GiftPullNum >= 1 {
 				//领取
-				giftCodes.GiftPullNum -= 1
+				/*giftCodes.GiftPullNum -= 1
 				giftCodes.GiftPulledNum += 1
 				list := giftCodes.RecordList
 				m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
@@ -108,7 +108,8 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 				if r != nil {
 					return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 				}
-				return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
+				return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}*/
+				return UpdateGift(giftCodes, userId)
 			} else {
 				//已领取过
 				return model.Result{Code: "217", Msg: "礼品码已领取", Data: nil}
@@ -129,7 +130,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 				//可以领取礼品
 				//增加领取记录
 				//领取
-				giftCodes.GiftPullNum -= 1
+				/*giftCodes.GiftPullNum -= 1
 				giftCodes.GiftPulledNum += 1
 				list := giftCodes.RecordList
 				m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
@@ -145,7 +146,8 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 				if r != nil {
 					return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 				}
-				return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
+				return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}*/
+				return UpdateGift(giftCodes, userId)
 			} else {
 				//有领取记录 使用查看是否领取过
 				for i, v := range records {
@@ -158,7 +160,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 						//可以领取礼品
 						//增加领取记录
 						//领取
-						giftCodes.GiftPullNum -= 1
+						/*giftCodes.GiftPullNum -= 1
 						giftCodes.GiftPulledNum += 1
 						list := giftCodes.RecordList
 						m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
@@ -173,8 +175,8 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 						if r != nil {
 							return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 						}
-						return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
-
+						return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}*/
+						return UpdateGift(giftCodes, userId)
 					}
 				}
 
@@ -192,7 +194,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 			//增加领取记录
 			//领取
 
-			giftCodes.GiftPulledNum += 1
+			/*giftCodes.GiftPulledNum += 1
 			list := giftCodes.RecordList
 			m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
 			list = append(list, m1)
@@ -206,7 +208,8 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 			if r != nil {
 				return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 			}
-			return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
+			return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}*/
+			return UpdateGift(giftCodes, userId)
 		} else {
 			//有领取记录 使用查看是否领取过
 			for i, v := range records {
@@ -220,20 +223,7 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 					//增加领取记录
 					//领取
 
-					giftCodes.GiftPulledNum += 1
-					list := giftCodes.RecordList
-					m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
-					list = append(list, m1)
-					giftCodes.RecordList = list
-					jsonStr, err := json.Marshal(giftCodes)
-					if err != nil {
-						return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
-					}
-					r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
-					if r != nil {
-						return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
-					}
-					return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
+					return UpdateGift(giftCodes, userId)
 
 				}
 			}
@@ -243,4 +233,43 @@ func (this *GiftCodeshandler) ActivateCode(giftCode string, userId string) model
 	}
 
 	return model.Result{Code: "220", Msg: "礼品码无效", Data: nil}
+}
+
+func UpdateGift(giftCodes *model.GiftCodes, userId string) model.Result {
+
+	//redis事务开始
+	// 开启一个TxPipeline事务
+	pipe := utils2.Rdb.TxPipeline()
+
+	// 执行事务操作，可以通过pipe读写redis
+	_ = pipe.Incr("tx_pipeline_counter")
+	pipe.Expire("tx_pipeline_counter", time.Hour)
+	if giftCodes.GiftCodeType == "C" {
+
+	} else {
+		giftCodes.GiftPullNum -= 1
+	}
+
+	giftCodes.GiftPulledNum += 1
+	list := giftCodes.RecordList
+	m1 := model.Record{Userid: userId, PullTime: time.Now().Unix(), PullTimeStr: time.Now().Format("2006-01-02 15:04:05")}
+	list = append(list, m1)
+	giftCodes.RecordList = list
+	jsonStr, err := json.Marshal(giftCodes)
+	if err != nil {
+		return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
+	}
+	r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
+	if r != nil {
+		pipe.Discard()
+		return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
+	}
+	//提交事务
+	_, e1 := pipe.Exec()
+	if e1 != nil {
+		//pipe.Discard()
+		fmt.Println(e1.Error())
+	}
+	return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
+
 }

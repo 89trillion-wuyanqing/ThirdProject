@@ -1,6 +1,6 @@
 ## 1.整体框架
 
-本服务提供http服务，通过使用mvc模式拆分项目。
+本服务通过配置文件加载http服务，创建礼品码和获取礼品码信息以及激活礼品码功能
 
 ## 2.目录结构
 
@@ -9,23 +9,31 @@
 │   ├── http
 │   │   └── httpServer.go
 │   └── main.go
+├── config
+│   └── app.ini
 ├── go.mod
 ├── go.sum
-└── internal
-    ├── ctrl
-    │   └── GiftCodesController.go
-    ├── handler
-    │   ├── GiftCodesHandler.go
-    │   └── GiftCodesHandler_test.go
-    ├── model
-    │   └── Gift.go
-    ├── router
-    │   └── GiftCodesRouter.go
-    ├── service
-    │   └── GiftCodesService.go
-    └── utils
-        ├── RedisUtils.go
-        └── random.go
+├── internal
+│   ├── ctrl
+│   │   └── GiftCodesController.go
+│   ├── handler
+│   │   ├── GiftCodesHandler.go
+│   │   └── GiftCodesHandler_test.go
+│   ├── model
+│   │   ├── Gift.go
+│   │   └── Result.go
+│   ├── router
+│   │   └── GiftCodesRouter.go
+│   ├── service
+│   │   └── GiftCodesService.go
+│   └── utils
+│       ├── IniUtils.go
+│       ├── RedisUtils.go
+│       └── random.go
+├── lucust
+│   ├── LocustFile.py
+│   └── report_1627875845.174693.html
+└── readme.md
 ```
 
 
@@ -41,6 +49,7 @@
 | 模型层    | /internal/model         | 数据模型                             | 被业务逻辑层调用          | 不可同层相互调用 |
 | service层 | /internal/service       | 通用业务逻辑                         | 被handler调用             | 不可同层相互调用 |
 | 工具层    | /internal/utils         | 工具层                               | 被各层调用                | 不可同层相互调用 |
+| 配置层    | /config                 | 放置配置文件和日志文件               |                           |                  |
 
 ## 4.存储设计
 
@@ -327,9 +336,7 @@ http://localhost:8000/activateCode
 
 ## 流程图
 
-[https://drive.google.com/drive/folders/1lRvdhqMMFNIiI-j0PUwtsjA0vgzSbMbX](https://drive.google.com/drive/folders/1lRvdhqMMFNIiI-j0PUwtsjA0vgzSbMbX)
 
 
-
-
+![第三题](第三题.png)
 
