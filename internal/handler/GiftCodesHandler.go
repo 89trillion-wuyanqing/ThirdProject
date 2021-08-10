@@ -259,15 +259,17 @@ func UpdateGift(giftCodes *model.GiftCodes, userId string) model.Result {
 	if err != nil {
 		return model.Result{Code: "212", Msg: "后台数据序列化出错", Data: nil}
 	}
-	r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
+	r := pipe.Set(giftCodes.GiftCode, string(jsonStr), 0).Err()
+	//r := utils2.StringPush(giftCodes.GiftCode, string(jsonStr), 0)
 	if r != nil {
 		pipe.Discard()
 		return model.Result{Code: "213", Msg: "redis存储失败", Data: nil}
 	}
 	//提交事务
 	_, e1 := pipe.Exec()
+
 	if e1 != nil {
-		//pipe.Discard()
+		pipe.Discard()
 		fmt.Println(e1.Error())
 	}
 	return model.Result{Code: "200", Msg: "成功", Data: giftCodes.GiftList}
