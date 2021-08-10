@@ -7,30 +7,29 @@
 ```
 ├── app
 │   ├── http
-│   │   └── httpServer.go
-│   └── main.go
-├── config
+│   │   └── httpServer.go #http服务
+│   └── main.go #程序入口
+├── config #配置文件
 │   └── app.ini
 ├── go.mod
-├── go.sum
 ├── internal
-│   ├── ctrl
+│   ├── ctrl #控制器层
 │   │   └── GiftCodesController.go
-│   ├── handler
+│   ├── handler #handler层
 │   │   ├── GiftCodesHandler.go
 │   │   └── GiftCodesHandler_test.go
-│   ├── model
+│   ├── model #模型层
 │   │   ├── Gift.go
 │   │   └── Result.go
-│   ├── router
+│   ├── router #路由层
 │   │   └── GiftCodesRouter.go
-│   ├── service
+│   ├── service #service层
 │   │   └── GiftCodesService.go
-│   └── utils
+│   └── utils #工具层
 │       ├── IniUtils.go
 │       ├── RedisUtils.go
 │       └── random.go
-├── lucust
+├── lucust #压力测试
 │   ├── LocustFile.py
 │   └── report_1627875845.174693.html
 └── readme.md
